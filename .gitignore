@@ -47,3 +47,4 @@ app.*.map.json
 
 # Otros
 AGENTS.md
+/.agents/
