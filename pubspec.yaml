@@ -23,12 +23,14 @@ dependencies:
   font_awesome_flutter: ^10.12.0
 
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
   sqflite_common_ffi: ^2.3.4+3
+  flutter_launcher_icons: ^0.14.4
 
 
 flutter:
@@ -38,4 +40,14 @@ flutter:
   assets:
     - assets/images/background.png
 
+
+# Configuración del icono (al final del archivo, sin sangría)
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon.png"
+  remove_alpha_ios: true
+  # Para Android 8.0+ (Iconos adaptativos)
+  adaptive_icon_background: "#FFFFFF" # O una imagen de fondo
+  adaptive_icon_foreground: "assets/icon.png"
 
