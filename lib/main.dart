@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'src/features/onboarding/initial_page.dart';
 import 'src/features/scanner/scanner_controller.dart';
 import 'src/features/scanner/scanner_page.dart';
 import 'src/repositories/bill_repository.dart';
@@ -40,7 +41,7 @@ class VerificadorApp extends StatelessWidget {
         textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
         useMaterial3: true,
       ),
-      home: const ScannerPage(),
+      home: const InitialPage(),
     );
   }
 }
