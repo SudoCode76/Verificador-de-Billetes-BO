@@ -76,12 +76,19 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
   }
 
   Future<void> _abrirWhatsApp() async {
-    // Reemplaza el número con el del desarrollador.
-    final uri = Uri.parse(
-      'https://wa.me/59170000000?text=Hola%2C%20necesito%20una%20app%20como%20esta',
+    const phone = '59162994685';
+    final message = Uri.encodeComponent(
+      'Hola Miguel, necesito información sobre la app Verificador Billetes.',
     );
+    final uri = Uri.parse('https://wa.me/$phone?text=$message');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se pudo abrir WhatsApp.')),
+        );
+      }
     }
   }
 
@@ -153,37 +160,103 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: _colorSurface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          '¿Cómo usar el escáner?',
-          style: GoogleFonts.inter(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Text(
-          '1. Selecciona el corte del billete (Bs 10, 20 o 50).\n\n'
-          '2. Apunta la cámara al número de serie del billete.\n\n'
-          '3. La app verificará automáticamente si la serie está '
-          'en la lista de billetes sin valor legal según el comunicado '
-          'CP9/2026 del Banco Central de Bolivia.\n\n'
-          '4. También puedes ingresar el número manualmente con el '
-          'botón del teclado.',
-          style: GoogleFonts.inter(color: Colors.white70, height: 1.5),
-        ),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _colorPrimary,
-              foregroundColor: _colorBgDark,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            const Icon(Icons.person_outline, color: _colorPrimary, size: 24),
+            const SizedBox(width: 10),
+            Text(
+              'Acerca de',
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
             ),
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Entendido',
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Nombre
+            Text(
+              'Miguel Angel Zenteno',
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+            Text(
+              'Desarrollador de aplicaciones móviles',
+              style: GoogleFonts.inter(color: Colors.white54, fontSize: 12),
+            ),
+            const SizedBox(height: 16),
+
+            // Separador
+            const Divider(color: Colors.white12),
+            const SizedBox(height: 12),
+
+            // LinkedIn
+            _InfoLink(
+              icon: Icons.work_outline,
+              label: 'LinkedIn',
+              url: 'https://www.linkedin.com/in/miguel-zenteno/',
+            ),
+            const SizedBox(height: 10),
+
+            // GitHub
+            _InfoLink(
+              icon: Icons.code,
+              label: 'GitHub  /SudoCode76',
+              url: 'https://github.com/SudoCode76',
+            ),
+            const SizedBox(height: 10),
+
+            // WhatsApp
+            _InfoLink(
+              icon: Icons.chat_outlined,
+              iconColor: const Color(0xFF25D366),
+              label: '+591 62994685',
+              url: 'https://wa.me/59162994685',
+            ),
+            const SizedBox(height: 16),
+
+            // Separador
+            const Divider(color: Colors.white12),
+            const SizedBox(height: 10),
+
+            // Descripción de la app
+            Text(
+              'Esta app verifica si un billete boliviano está en la lista '
+              'de billetes sin valor legal según el comunicado CP9/2026 '
+              'del Banco Central de Bolivia.',
+              style: GoogleFonts.inter(
+                color: Colors.white54,
+                fontSize: 12,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _colorPrimary,
+                foregroundColor: _colorBgDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Cerrar',
+                style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+              ),
             ),
           ),
         ],
@@ -253,6 +326,53 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Widget auxiliar: enlace con icono (usado en el diálogo Acerca de) ────────
+
+class _InfoLink extends StatelessWidget {
+  const _InfoLink({
+    required this.icon,
+    required this.label,
+    required this.url,
+    this.iconColor = _colorPrimary,
+  });
+
+  final IconData icon;
+  final String label;
+  final String url;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                color: _colorPrimary,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
+                decorationColor: _colorPrimary,
+              ),
+            ),
+          ),
+          const Icon(Icons.open_in_new, color: Colors.white24, size: 14),
+        ],
       ),
     );
   }
