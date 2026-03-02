@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -77,13 +78,22 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
 
   Future<void> _abrirWhatsApp() async {
     const phone = '59162994685';
-    final message = Uri.encodeComponent(
+    final encodedMsg = Uri.encodeComponent(
       'Hola Miguel, necesito información sobre la app Verificador Billetes.',
     );
-    final uri = Uri.parse('https://wa.me/$phone?text=$message');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
+
+    // Intentar abrir la app nativa primero
+    final appUri = Uri.parse('whatsapp://send?phone=$phone&text=$encodedMsg');
+    if (await canLaunchUrl(appUri)) {
+      await launchUrl(appUri);
+      return;
+    }
+
+    // Fallback: abrir wa.me en el navegador/WebView
+    final webUri = Uri.parse('https://wa.me/$phone?text=$encodedMsg');
+    try {
+      await launchUrl(webUri, mode: LaunchMode.externalApplication);
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se pudo abrir WhatsApp.')),
@@ -158,110 +168,133 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
   void _mostrarInfo() {
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: _colorSurface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.person_outline, color: _colorPrimary, size: 24),
-            const SizedBox(width: 10),
-            Text(
-              'Acerca de',
-              style: GoogleFonts.inter(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Nombre
-            Text(
-              'Miguel Angel Zenteno',
-              style: GoogleFonts.inter(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
-            Text(
-              'Desarrollador de aplicaciones móviles',
-              style: GoogleFonts.inter(color: Colors.white54, fontSize: 12),
-            ),
-            const SizedBox(height: 16),
-
-            // Separador
-            const Divider(color: Colors.white12),
-            const SizedBox(height: 12),
-
-            // LinkedIn
-            _InfoLink(
-              icon: Icons.work_outline,
-              label: 'LinkedIn',
-              url: 'https://www.linkedin.com/in/miguel-zenteno/',
-            ),
-            const SizedBox(height: 10),
-
-            // GitHub
-            _InfoLink(
-              icon: Icons.code,
-              label: 'GitHub  /SudoCode76',
-              url: 'https://github.com/SudoCode76',
-            ),
-            const SizedBox(height: 10),
-
-            // WhatsApp
-            _InfoLink(
-              icon: Icons.chat_outlined,
-              iconColor: const Color(0xFF25D366),
-              label: '+591 62994685',
-              url: 'https://wa.me/59162994685',
-            ),
-            const SizedBox(height: 16),
-
-            // Separador
-            const Divider(color: Colors.white12),
-            const SizedBox(height: 10),
-
-            // Descripción de la app
-            Text(
-              'Esta app verifica si un billete boliviano está en la lista '
-              'de billetes sin valor legal según el comunicado CP9/2026 '
-              'del Banco Central de Bolivia.',
-              style: GoogleFonts.inter(
-                color: Colors.white54,
-                fontSize: 12,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _colorPrimary,
-                foregroundColor: _colorBgDark,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(
-                'Cerrar',
-                style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-              ),
-            ),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A2B1F),
+            borderRadius: BorderRadius.circular(20),
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Ícono ⓘ verde circular
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: _colorPrimary, width: 2),
+                ),
+                child: const Icon(
+                  Icons.info_outline,
+                  color: _colorPrimary,
+                  size: 26,
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Título
+              Text(
+                'Acerca de',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Descripción
+              Text(
+                'Diseñado y desarrollado por Miguel Angel Zenteno Orellana.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Fila de iconos sociales
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _SocialIconButton(
+                    icon: FontAwesomeIcons.github,
+                    label: 'GitHub',
+                    bgColor: const Color(0xFF2D2D2D),
+                    iconColor: Colors.white,
+                    onTap: () => _launchUrl(
+                      'https://github.com/SudoCode76',
+                      ctx,
+                    ),
+                  ),
+                  _SocialIconButton(
+                    icon: FontAwesomeIcons.linkedin,
+                    label: 'LinkedIn',
+                    bgColor: const Color(0xFF0A66C2),
+                    iconColor: Colors.white,
+                    onTap: () => _launchUrl(
+                      'https://www.linkedin.com/in/miguel-zenteno/',
+                      ctx,
+                    ),
+                  ),
+                  _SocialIconButton(
+                    icon: FontAwesomeIcons.whatsapp,
+                    label: 'WhatsApp',
+                    bgColor: const Color(0xFF25D366),
+                    iconColor: Colors.white,
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _abrirWhatsApp();
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Botón CERRAR
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    'CERRAR',
+                    style: GoogleFonts.inter(
+                      color: _colorPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  /// Lanza una URL HTTPS directamente sin guard de canLaunchUrl
+  /// (Android 11+ requiere queries en el manifest para que canLaunchUrl
+  /// devuelva true; launchUrl directamente siempre funciona si el SO tiene
+  /// un browser o handler instalado).
+  Future<void> _launchUrl(String url, BuildContext dialogCtx) async {
+    final uri = Uri.parse(url);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      if (dialogCtx.mounted) {
+        ScaffoldMessenger.of(dialogCtx).showSnackBar(
+          SnackBar(content: Text('No se pudo abrir $url')),
+        );
+      }
+    }
   }
 
   // ── Build ────────────────────────────────────────────────────────────────
@@ -275,17 +308,15 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
         body: Stack(
           fit: StackFit.expand,
           children: [
-            // Capa 0 – fondo con textura pintada de billetes
-            const _BilleteBackground(),
+            // Capa 0 – fondo oscuro sólido (visible mientras la cámara carga
+            //          o si el usuario deniega el permiso)
+            const ColoredBox(color: _colorBgDark),
 
-            // Capa 1 – degradado overlay (réplica del .camera-overlay del HTML)
-            const _CameraOverlay(),
-
-            // Capa 2 – preview de cámara (si está lista) como fondo real
+            // Capa 1 – preview de cámara a pantalla completa
             if (_cameraReady)
               _CameraPreviewLayer(controller: _cameraHandler.cameraController!),
 
-            // Capa 3 – UI principal
+            // Capa 2 – UI principal
             SafeArea(
               child: Column(
                 children: [
@@ -331,93 +362,52 @@ class _ScannerPageState extends State<ScannerPage> with WidgetsBindingObserver {
   }
 }
 
-// ── Widget auxiliar: enlace con icono (usado en el diálogo Acerca de) ────────
+// ── Widget auxiliar: icono social circular con label (diálogo Acerca de) ─────
 
-class _InfoLink extends StatelessWidget {
-  const _InfoLink({
+class _SocialIconButton extends StatelessWidget {
+  const _SocialIconButton({
     required this.icon,
     required this.label,
-    required this.url,
-    this.iconColor = _colorPrimary,
+    required this.bgColor,
+    required this.iconColor,
+    required this.onTap,
   });
 
   final IconData icon;
   final String label;
-  final String url;
+  final Color bgColor;
   final Color iconColor;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () async {
-        final uri = Uri.parse(url);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        }
-      },
-      child: Row(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: iconColor, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              label,
-              style: GoogleFonts.inter(
-                color: _colorPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                decoration: TextDecoration.underline,
-                decorationColor: _colorPrimary,
-              ),
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: bgColor,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: FaIcon(icon, color: iconColor, size: 26),
             ),
           ),
-          const Icon(Icons.open_in_new, color: Colors.white24, size: 14),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: Colors.white70,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
-    );
-  }
-}
-
-// ── Fondo con imagen de billetes ─────────────────────────────────────────────
-
-class _BilleteBackground extends StatelessWidget {
-  const _BilleteBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Image.asset(
-        'assets/images/background.png',
-        fit: BoxFit.cover,
-        color: Colors.black.withValues(alpha: 0.4),
-        colorBlendMode: BlendMode.darken,
-      ),
-    );
-  }
-}
-
-// ── Degradado overlay ─────────────────────────────────────────────────────────
-
-class _CameraOverlay extends StatelessWidget {
-  const _CameraOverlay();
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          stops: [0.0, 0.20, 0.80, 1.0],
-          colors: [
-            Color(0x99102216),
-            Color(0x00102216),
-            Color(0x00102216),
-            Color(0xCC102216),
-          ],
-        ),
-      ),
-      child: const SizedBox.expand(),
     );
   }
 }
@@ -431,16 +421,13 @@ class _CameraPreviewLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: 0.55,
-      child: SizedBox.expand(
-        child: FittedBox(
-          fit: BoxFit.cover,
-          child: SizedBox(
-            width: controller.value.previewSize?.height ?? 1,
-            height: controller.value.previewSize?.width ?? 1,
-            child: CameraPreview(controller),
-          ),
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: controller.value.previewSize?.height ?? 1,
+          height: controller.value.previewSize?.width ?? 1,
+          child: CameraPreview(controller),
         ),
       ),
     );
@@ -957,7 +944,11 @@ class _ContactCard extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.chat, color: Colors.white, size: 18),
+                  const FaIcon(
+                    FontAwesomeIcons.whatsapp,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     'WhatsApp',

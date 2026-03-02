@@ -45,5 +45,18 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Needed for url_launcher to open HTTPS links (browser) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <!-- Needed for url_launcher to open HTTP links -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="http"/>
+        </intent>
+        <!-- Needed to detect WhatsApp and open wa.me links -->
+        <package android:name="com.whatsapp"/>
+        <package android:name="com.whatsapp.w4b"/>
     </queries>
 </manifest>
